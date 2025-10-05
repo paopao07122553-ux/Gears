@@ -1,0 +1,39 @@
+while true do
+
+local args = {
+    [1] = "Frost Grenade"
+}
+
+game:GetService("ReplicatedStorage").Remotes.BuyGear:FireServer(unpack(args))
+task.wait(0.1)
+
+local args = {
+    [1] = "Water Bucket"
+}
+
+game:GetService("ReplicatedStorage").Remotes.BuyGear:FireServer(unpack(args))
+task.wait(0.1)
+
+local args = {
+    [1] = "Frost Blower"
+}
+
+game:GetService("ReplicatedStorage").Remotes.BuyGear:FireServer(unpack(args))
+task.wait(0.1)
+
+local args = {
+    [1] = "Banana Gun"
+}
+
+game:GetService("ReplicatedStorage").Remotes.BuyGear:FireServer(unpack(args))
+task.wait(0.1)
+
+local args = {
+    [1] = "Carrot Launcher"
+}
+
+game:GetService("ReplicatedStorage").Remotes.BuyGear:FireServer(unpack(args))
+task.wait(0.1)
+
+
+end
