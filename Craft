@@ -1,0 +1,198 @@
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local TextBox1 = Instance.new("TextBox")  
+local TextBox2 = Instance.new("TextBox")  
+local StatusLabel = Instance.new("TextLabel")
+local ToggleButton = Instance.new("TextButton")
+
+local success, err = pcall(function()
+    ScreenGui.Parent = game:GetService("CoreGui")
+end)
+if not success then
+    ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
+
+Frame.Name = "RGBDetectorFrame"
+Frame.Size = UDim2.new(0, 300, 0, 240)
+Frame.Position = UDim2.new(0.5, -150, 0.4, -120)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- ปรับพื้นหลังให้เข้มขึ้นเพื่อให้ RGB เด่น
+Frame.BorderSizePixel = 2
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "RGB Stock Detector (Dual)"
+Title.TextSize = 18
+Title.Font = Enum.Font.SourceSansBold
+Title.BackgroundTransparency = 1
+Title.Parent = Frame
+
+TextBox1.Size = UDim2.new(0, 260, 0, 35)
+TextBox1.Position = UDim2.new(0.5, -130, 0.18, 0)
+TextBox1.Text = "Immortal Chalice"
+TextBox1.PlaceholderText = "พิมพ์ชื่อไอเทมชิ้นที่ 1..."
+TextBox1.TextSize = 15
+TextBox1.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TextBox1.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox1.BorderColor3 = Color3.fromRGB(100, 100, 100)
+TextBox1.Parent = Frame
+
+TextBox2.Size = UDim2.new(0, 260, 0, 35)
+TextBox2.Position = UDim2.new(0.5, -130, 0.36, 0)
+TextBox2.Text = "" 
+TextBox2.PlaceholderText = "พิมพ์ชื่อไอเทมชิ้นที่ 2 (ถ้ามี)..."
+TextBox2.TextSize = 15
+TextBox2.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TextBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox2.BorderColor3 = Color3.fromRGB(100, 100, 100)
+TextBox2.Parent = Frame
+
+StatusLabel.Size = UDim2.new(0, 260, 0, 35)
+StatusLabel.Position = UDim2.new(0.5, -130, 0.55, 0)
+StatusLabel.Text = "สถานะ: ปิดการทำงาน"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 13
+StatusLabel.Font = Enum.Font.SourceSansItalic
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextWrapped = true 
+StatusLabel.Parent = Frame
+
+ToggleButton.Size = UDim2.new(0, 260, 0, 40)
+ToggleButton.Position = UDim2.new(0.5, -130, 0.75, 0)
+ToggleButton.Text = "เริ่มตรวจจับระบบใหม่ (OFF)"
+ToggleButton.TextSize = 16
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Parent = Frame
+
+--- 🌈 ระบบไฟ RGB (Rainbow Effect) 🌈 ---
+task.spawn(function()
+    local hue = 0
+    while true do
+        -- เพิ่มค่า hue ไปเรื่อยๆ เพื่อเปลี่ยนเฉดสี (0.001-0.01)
+        hue = hue + 0.005 
+        if hue > 1 then hue = 0 end
+        
+        -- แปลงค่า HSV เป็น Color3 ของ Roblox
+        local rainbowColor = Color3.fromHSV(hue, 1, 1)
+        
+        -- ใส่สี RGB ให้กับ ขอบหน้าต่าง และ ตัวหนังสือหัวข้อ
+        Frame.BorderColor3 = rainbowColor
+        Title.TextColor3 = rainbowColor
+        
+        task.wait(0.02) -- ความเร็วในการเปลี่ยนสี (ยิ่งน้อยยิ่งเปลี่ยนไวและสมูท)
+    end
+end)
+
+--- 🛠️ ระบบตรวจจับเวอร์ชันแก้บัค (Anti-Bug Logic) 🛠️ ---
+local autoCraftActive = false
+local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+local craftTrophy = remotes:WaitForChild("CraftTrophy")
+
+local function isUiRealAndVisible(obj)
+    local current = obj
+    while current and current:IsA("GuiObject") do
+        if not current.Visible then
+            return false 
+        end
+        current = current.Parent
+    end
+    return true
+end
+
+local function checkItemStock(itemName)
+    if itemName == "" or itemName == "พิมพ์ชื่อไอเทมชิ้นที่ 1..." or itemName == "พิมพ์ชื่อไอเทมชิ้นที่ 2 (ถ้ามี)..." then 
+        return "EMPTY" 
+    end
+    
+    local lowerName = itemName:lower()
+    local playerGui = game:GetService("Players").LocalPlayer:findFirstChild("PlayerGui")
+    
+    if playerGui then
+        for _, v in pairs(playerGui:GetDescendants()) do
+            if (v:IsA("TextLabel") or v:IsA("TextButton")) and v.Text:lower():find(lowerName) then
+                if isUiRealAndVisible(v) then
+                    local itemFrame = v.Parent
+                    local outOfStock = false
+                    
+                    for _, child in pairs(itemFrame:GetDescendants()) do
+                        if child:IsA("TextLabel") or child:IsA("TextButton") then
+                            local txt = child.Text:lower()
+                            if txt:find("out") or txt:find("sold") or txt:find("หมด") or txt:find("stock: 0") or txt:find("0 left") or txt:find("0/") or txt == "0" then
+                                outOfStock = true
+                                break
+                            end
+                        end
+                    end
+                    
+                    if outOfStock then
+                        return "OUT_OF_STOCK"
+                    else
+                        return "IN_STOCK"
+                    end
+                end
+            end
+        end
+    end
+    return "NOT_FOUND"
+end
+
+-- ระบบปุ่มทำงาน
+ToggleButton.MouseButton1Click:Connect(function()
+    autoCraftActive = not autoCraftActive
+    
+    if autoCraftActive then
+        ToggleButton.Text = "ระบบตรวจจับกำลังทำงาน (ON)"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        
+        task.spawn(function()
+            while autoCraftActive do
+                local item1 = TextBox1.Text
+                local item2 = TextBox2.Text
+                
+                local status1 = checkItemStock(item1)
+                local status2 = checkItemStock(item2)
+                
+                local displayTxt = ""
+                
+                if status1 == "IN_STOCK" then
+                    displayTxt = displayTxt .. "[1] In Stock! กำลังคราฟต์..\n"
+                    craftTrophy:FireServer(item1)
+                elseif status1 == "OUT_OF_STOCK" then
+                    displayTxt = displayTxt .. "[1] รอเติม (Out of Stock)\n"
+                elseif status1 == "NOT_FOUND" then
+                    displayTxt = displayTxt .. "[1] ไม่พบร้านค้า (เปิดจอรอนะ)\n"
+                end
+                
+                if status2 == "IN_STOCK" then
+                    displayTxt = displayTxt .. "[2] In Stock! กำลังคราฟต์.."
+                    craftTrophy:FireServer(item2)
+                elseif status2 == "OUT_OF_STOCK" then
+                    displayTxt = displayTxt .. "[2] รอเติม (Out of Stock)"
+                elseif status2 == "NOT_FOUND" then
+                    displayTxt = displayTxt .. "[2] ไม่พบร้านค้า (เปิดจอรอนะ)"
+                end
+                
+                StatusLabel.Text = displayTxt
+                
+                if status1 == "IN_STOCK" or status2 == "IN_STOCK" then
+                    StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+                    task.wait(2) 
+                else
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 230, 100) 
+                end
+                
+                task.wait(1)
+            end
+        end)
+    else
+        ToggleButton.Text = "เริ่มตรวจจับระบบใหม่ (OFF)"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        StatusLabel.Text = "สถานะ: ปิดการทำงาน"
+        StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end
+end)
+
